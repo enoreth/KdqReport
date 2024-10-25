@@ -25,6 +25,27 @@ internal sealed class ReportWriter(IOptions<FileSettings> fileSettings)
         return fileName;
     }
 
+    internal async Task CleanXmlFiles()
+    {
+        DirectoryInfo filesDir = new(fileSettings.Value.DownloadDir);
+        if (!filesDir.Exists)
+        {
+            throw new DirectoryNotFoundException($"Directory {fileSettings.Value.DownloadDir} does not exist");
+        }
+
+        var files = filesDir.GetFiles("*.xml").Select(s => s.FullName);
+        await Parallel.ForEachAsync(files, async (filePath, _) =>
+        {
+            Console.WriteLine($"Cleaning {filePath}");
+            var xmlText = await File.ReadAllTextAsync(filePath);
+            var cleanedXml = KdqDownloader.CleanXmlText(xmlText);
+            File.Delete(filePath);
+
+            await File.WriteAllTextAsync(filePath, cleanedXml, CancellationToken.None);
+
+        });
+    }
+
     private async Task<string> SaveReportAsync(IReadOnlyCollection<ReportItem> reportItems)
     {
         ArgumentNullException.ThrowIfNull(reportItems);
@@ -54,7 +75,7 @@ internal sealed class ReportWriter(IOptions<FileSettings> fileSettings)
 
             if (contractingBody == null)
             {
-                Warn("Warning: No CONTRACTING_BODY element found");
+                Warn($"Warning: {filePath} No CONTRACTING_BODY element found");
                 return;
             }
             

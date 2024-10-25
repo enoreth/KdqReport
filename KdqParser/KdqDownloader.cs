@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
+using System.Web;
 using System.Xml;
 using Microsoft.Extensions.Options;
 
@@ -8,11 +9,27 @@ namespace KdqParser;
 internal sealed partial class KdqDownloader(IKdqApi kdqApi, IOptions<FileSettings> downloadSettings)
 {
     private static readonly Regex ExtractId = MyRegex();
-    private static readonly Regex RemoveNamespace = MyRegex1();
+    public static readonly Regex RemoveNamespace = MyRegex1();
+    public static readonly Regex RemoveNamespace2 = MyRegex2();
+    public static readonly Regex RemoveNamespace3 = MyRegex3();
+    public static readonly Regex RemoveNoise = MyRegex4();
+    public static readonly Regex RemoveSpaceAfterXsd = MyRegex5();
     
+
+    public static string CleanXmlText(string text)
+    {
+        var cleanedXml = RemoveNoise.Replace(text, string.Empty);
+        cleanedXml = RemoveNamespace.Replace(cleanedXml, string.Empty);
+        cleanedXml = RemoveNamespace2.Replace(cleanedXml, string.Empty);
+        cleanedXml = RemoveNamespace3.Replace(cleanedXml, string.Empty);
+        cleanedXml = RemoveSpaceAfterXsd.Replace(cleanedXml, string.Empty);
+        return cleanedXml;
+    }
+        
     internal async Task<int> DownloadAndSaveAsync()
     {
-        var kdqListXml = await kdqApi.GetAllKdqItemsAsync();
+        //var kdqListXml = await kdqApi.GetAllKdqItemsAsync();
+        var kdqListXml = await kdqApi.GetAllKdqItemsAusschreibungAtAsync();
         var urls = GetKdqBaseListXml(kdqListXml);
 
         var result = await SaveKdqFilesAsync(urls);
@@ -26,16 +43,21 @@ internal sealed partial class KdqDownloader(IKdqApi kdqApi, IOptions<FileSetting
         int counter = 0;
         ArgumentNullException.ThrowIfNull(urls);
         ConcurrentBag<string> kdqIds = new (urls);
-        await Parallel.ForEachAsync(kdqIds, async (kdqId, _) =>
+        foreach(var kdqId in kdqIds)
         {
             try
             {
-                var kdqXml = await kdqApi.GetKdqItemAsync(kdqId);
-                var cleanedXml = RemoveNamespace.Replace(kdqXml, string.Empty);
-                await File.WriteAllTextAsync($"{downloadSettings.Value.DownloadDir}/{kdqId}.xml", cleanedXml, CancellationToken.None);
+                var matches = Regex.Match(@kdqId, "id=([A-Za-z0-9]+)");
+                Console.WriteLine(matches.Groups[1].Value);
+                
+                var kdqXml = await kdqApi.GetKdqItemAusschreibungAtAsync(matches.Groups[1].Value);
+                var cleanedXml = CleanXmlText(kdqXml);
+                
+                await File.WriteAllTextAsync($"{downloadSettings.Value.DownloadDir}/{matches.Groups[1].Value}.xml", cleanedXml, CancellationToken.None);
                 Interlocked.Increment(ref counter);
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"Saved {downloadSettings.Value.DownloadDir}/{kdqId}.xml");
+                Thread.Sleep(15);
             }
             catch (Exception ex)
             {
@@ -43,7 +65,7 @@ internal sealed partial class KdqDownloader(IKdqApi kdqApi, IOptions<FileSetting
                 Console.WriteLine($"Error saving file: {kdqId}");
                 Console.WriteLine(ex);
             }
-        });
+        };
         
         Console.ResetColor();
         return counter;
@@ -71,6 +93,20 @@ internal sealed partial class KdqDownloader(IKdqApi kdqApi, IOptions<FileSetting
 
     [GeneratedRegex("[^/]+$", RegexOptions.Compiled)]
     private static partial Regex MyRegex();
-    [GeneratedRegex("\\s+xmlns=\"[^\"]+\"", RegexOptions.Compiled)]
+    
+    [GeneratedRegex("\\s+xmlns\\s*=\"[^\"]+\"", RegexOptions.Compiled)]
     private static partial Regex MyRegex1();
+    
+    
+    [GeneratedRegex("\\s+xmlns:xsi=\"[^\"]+\"", RegexOptions.Compiled)]
+    private static partial Regex MyRegex2();
+    
+    [GeneratedRegex("\\s+xsi:schemaLocation=\"[^\"]+\"", RegexOptions.Compiled)]
+    private static partial Regex MyRegex3();
+    
+    [GeneratedRegex(@"[\t\r\n]+")]
+    private static partial Regex MyRegex4();
+    
+    [GeneratedRegex(@"(?<=\.xsd)\s+")]
+    private static partial Regex MyRegex5();
 }

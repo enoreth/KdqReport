@@ -41,6 +41,7 @@ var host = Host.CreateDefaultBuilder(args)
  Console.WriteLine("1 - Download All Kdq Files to Localdir");
  Console.WriteLine("2 - Create a Report of downloaded Kdq files");
  Console.WriteLine("3 - Download Kdq Files and create a report -DEFAULT");
+ Console.WriteLine("4 - Clean XML");
  var option = Console.ReadLine();
 
  switch (option)
@@ -51,8 +52,11 @@ var host = Host.CreateDefaultBuilder(args)
      case "2":
          var createReportresult = await reportWriter.CreateReportAsync();
          break;
-     default:
+     case "3":
          await downloader.DownloadAndSaveAsync();
          await reportWriter.CreateReportAsync();
+         break;
+     case "4":
+         await reportWriter.CleanXmlFiles();
          break;
 }
