@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KdqParser", "KdqParser\KdqParser.csproj", "{AC65B789-89F2-477A-8281-61E23BDF512C}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KdqParser", "KdqParser\KdqParser.csproj", "{AC65B789-89F2-477A-8281-61E23BDF512C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reports", "Reports", "{3E40AF4D-B2D6-41C1-BBB4-86393EB6767F}"
 	ProjectSection(SolutionItems) = preProject
@@ -8,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reports", "Reports", "{3E40
 		Reports\20241022231227.xlsx = Reports\20241022231227.xlsx
 		Reports\20241022231958.csv = Reports\20241022231958.csv
 		Reports\20241022231958.xlsx = Reports\20241022231958.xlsx
+		Reports\20241025112946_ausschreibung.at.xlsx = Reports\20241025112946_ausschreibung.at.xlsx
 	EndProjectSection
 EndProject
 Global
@@ -20,5 +24,11 @@ Global
 		{AC65B789-89F2-477A-8281-61E23BDF512C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC65B789-89F2-477A-8281-61E23BDF512C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC65B789-89F2-477A-8281-61E23BDF512C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CF4F875B-7389-47A9-9847-73F8FAD95275}
 	EndGlobalSection
 EndGlobal
